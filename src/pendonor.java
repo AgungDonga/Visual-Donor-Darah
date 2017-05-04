@@ -1,15 +1,22 @@
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
 
 /*
@@ -28,12 +35,75 @@ public class pendonor extends javax.swing.JFrame {
     private Statement stt;
     private ResultSet rss;
     private PreparedStatement pst;
+    java.util.Date tglsekarang = new java.util.Date();
+    private SimpleDateFormat smpdtfmt = new SimpleDateFormat("dd MMMMMMMMM yyyy", Locale.getDefault());
+//diatas adalah pengaturan format penulisan, bisa diubah sesuai keinginan.
+    private String tanggal = smpdtfmt.format(tglsekarang);
 
     /**
      * Creates new form pendonor
      */
     public pendonor() {
         initComponents();
+        tglskrng.setText(tanggal);
+        setJam();
+//        tglhariini();
+    }
+
+//    private void tglhariini() {
+//        Date now = new Date();
+//        SimpleDateFormat simpleDateFormat
+//                = new SimpleDateFormat("dd MMMM yyyy");
+//        String tgl = simpleDateFormat.format(now);
+//        tglskrng.setText(tgl);
+//
+//    }
+    private boolean validasi(String nama, String alamat, String donor_ke) { //mthod agar tidk ada data yang sama ketika dibuat
+        try { //untuk membuat eksepsi
+            stt = con.createStatement(); //agar konek db
+            String sql = "SELECT * FROM pendonor where nama='" + nama + "'" + " AND alamat='" + alamat + "'" + " AND donor_ke='" + donor_ke + "'"; //mendeklarasikan variabel sql dengan query untuk menampilkan data sesuai kondisi judul yang ditentukan
+            rss = stt.executeQuery(sql); //untuk konek ke db
+            if (rss.next()) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (SQLException e) { //menangkap sebuah error pada SQL
+            System.out.println(e.getMessage());
+            return false;
+        }
+    }
+
+    public final void setJam() {
+        ActionListener taskPerformer = new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent evt) {
+                String nol_jam = "", nol_menit = "", nol_detik = "";
+
+                java.util.Date dateTime = new java.util.Date();
+                int nilai_jam = dateTime.getHours();
+                int nilai_menit = dateTime.getMinutes();
+                int nilai_detik = dateTime.getSeconds();
+
+                if (nilai_jam <= 9) {
+                    nol_jam = "0";
+                }
+                if (nilai_menit <= 9) {
+                    nol_menit = "0";
+                }
+                if (nilai_detik <= 9) {
+                    nol_detik = "0";
+                }
+
+                String jam = nol_jam + Integer.toString(nilai_jam);
+                String menit = nol_menit + Integer.toString(nilai_menit);
+                String detik = nol_detik + Integer.toString(nilai_detik);
+
+                lblwaktu.setText(jam + ":" + menit + ":" + detik + "");
+            }
+        };
+        new Timer(1000, taskPerformer).start();
     }
 
     private void InitTable() {//inisiasi tabel atau membuat table secara manual
@@ -79,7 +149,7 @@ public class pendonor extends javax.swing.JFrame {
         jLabel19 = new javax.swing.JLabel();
         GOL_DARAH = new javax.swing.JComboBox<>();
         TEK_DARAH = new javax.swing.JTextField();
-        SUHU_DARAH = new javax.swing.JTextField();
+        SUHU_TUBUH = new javax.swing.JTextField();
         KADAR_HB = new javax.swing.JTextField();
         jLabel20 = new javax.swing.JLabel();
         jLabel21 = new javax.swing.JLabel();
@@ -107,7 +177,7 @@ public class pendonor extends javax.swing.JFrame {
         jLabel14 = new javax.swing.JLabel();
         jLabel15 = new javax.swing.JLabel();
         photo = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
+        CHOOSE = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         TABLE = new javax.swing.JTable();
         jPanel2 = new javax.swing.JPanel();
@@ -117,6 +187,8 @@ public class pendonor extends javax.swing.JFrame {
         jLabel6 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
+        tglskrng = new javax.swing.JLabel();
+        lblwaktu = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -143,6 +215,12 @@ public class pendonor extends javax.swing.JFrame {
         jLabel19.setText("Kadar HB");
 
         GOL_DARAH.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "A", "B", "AB", "O" }));
+
+        SUHU_TUBUH.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                SUHU_TUBUHActionPerformed(evt);
+            }
+        });
 
         jLabel20.setFont(new java.awt.Font("AmbersHand", 0, 18)); // NOI18N
         jLabel20.setText("Denyut Nadi");
@@ -178,6 +256,8 @@ public class pendonor extends javax.swing.JFrame {
 
         jLabel5.setText("cc");
 
+        DONOR_TERAKHIR.setDateFormatString("dd-MM-yyyy");
+
         javax.swing.GroupLayout panelGlass1Layout = new javax.swing.GroupLayout(panelGlass1);
         panelGlass1.setLayout(panelGlass1Layout);
         panelGlass1Layout.setHorizontalGroup(
@@ -199,7 +279,7 @@ public class pendonor extends javax.swing.JFrame {
                                 .addGap(18, 18, 18)
                                 .addGroup(panelGlass1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(KADAR_HB, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(SUHU_DARAH, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(SUHU_TUBUH, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(TEK_DARAH, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE))))
                         .addGap(65, 65, 65)
                         .addGroup(panelGlass1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -222,6 +302,7 @@ public class pendonor extends javax.swing.JFrame {
                             .addComponent(DONOR_TERAKHIR, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addContainerGap(118, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelGlass1Layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(RESET, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(PROSES, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -250,7 +331,7 @@ public class pendonor extends javax.swing.JFrame {
                 .addGroup(panelGlass1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel22)
                     .addComponent(DONOR_KE, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(SUHU_DARAH, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(SUHU_TUBUH, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel18))
                 .addGap(18, 18, 18)
                 .addGroup(panelGlass1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
@@ -275,6 +356,8 @@ public class pendonor extends javax.swing.JFrame {
 
         PEKERJAAN.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Pegawai Negeri", "Pegawai Swasta", "Polisi", "Dosen/Guru", "Mahasiswa", "Rumah Tangga", "Lainnya" }));
 
+        TGL_LAHIR.setDateFormatString("dd-MM-yyyy");
+
         jLabel11.setFont(new java.awt.Font("AmbersHand", 0, 18)); // NOI18N
         jLabel11.setText("Umur");
 
@@ -292,10 +375,10 @@ public class pendonor extends javax.swing.JFrame {
 
         photo.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Foto", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.DEFAULT_POSITION));
 
-        jButton1.setText("Choose");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        CHOOSE.setText("Choose");
+        CHOOSE.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                CHOOSEActionPerformed(evt);
             }
         });
 
@@ -361,7 +444,7 @@ public class pendonor extends javax.swing.JFrame {
                         .addComponent(photo, javax.swing.GroupLayout.PREFERRED_SIZE, 187, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(99, 99, 99)
-                        .addComponent(jButton1)))
+                        .addComponent(CHOOSE)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
@@ -412,7 +495,7 @@ public class pendonor extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(photo, javax.swing.GroupLayout.PREFERRED_SIZE, 256, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton1)))
+                        .addComponent(CHOOSE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 256, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(182, 182, 182))
@@ -446,6 +529,12 @@ public class pendonor extends javax.swing.JFrame {
         jLabel8.setForeground(new java.awt.Color(255, 102, 102));
         jLabel8.setText("Jl. Kerayan, Samarinda-Kalimantan Timur");
 
+        tglskrng.setFont(new java.awt.Font("Telegraphem", 0, 18)); // NOI18N
+        tglskrng.setText("jLabel9");
+
+        lblwaktu.setFont(new java.awt.Font("Telegraphem", 0, 18)); // NOI18N
+        lblwaktu.setText("jLabel9");
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
@@ -459,10 +548,15 @@ public class pendonor extends javax.swing.JFrame {
                         .addComponent(jLabel6))
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addGap(66, 66, 66)
-                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jLabel8)
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(jPanel3Layout.createSequentialGroup()
+                                .addComponent(tglskrng)
+                                .addGap(44, 44, 44)
+                                .addComponent(lblwaktu)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jLabel8))
                             .addComponent(jLabel7))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(26, Short.MAX_VALUE))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -475,8 +569,12 @@ public class pendonor extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel7)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel8)
-                .addGap(23, 23, 23))
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel8)
+                    .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(tglskrng)
+                        .addComponent(lblwaktu)))
+                .addGap(20, 20, 20))
         );
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -520,7 +618,7 @@ public class pendonor extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void CHOOSEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CHOOSEActionPerformed
         // TODO add your handling code here:
         JFileChooser OPEN = new JFileChooser();
         int returnVal = OPEN.showOpenDialog(null);
@@ -538,39 +636,87 @@ public class pendonor extends javax.swing.JFrame {
         } catch (IOException e) {
             e.getMessage();
         }
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_CHOOSEActionPerformed
+
+    private void TambahData(String nama, String alamat, String umur, String kelamin, String pekerjaan, String tgl_lahir, String telp, String gol_darah, String tek_darah, String suhu_tubuh, String kadar_hb, String denyut_nadi, String darah_diambil, String donor_ke, String donor_terakhir) {
+        try {
+//            String kelaminnya;
+            String sql
+                    = "INSERT INTO pendonor VALUES (NULL,'" + nama + "','" + alamat + "','" + umur + "','" + kelamin + "','" + pekerjaan + "','" + tgl_lahir + "','" + telp + "','" + gol_darah + "','" + tek_darah + "','" + suhu_tubuh + "','" + kadar_hb + "','" + denyut_nadi + "','" + darah_diambil + "','" + donor_ke + "','" + donor_terakhir + "')";
+            stt = con.createStatement();
+            stt.executeUpdate(sql);
+            NAMA.setText("");
+            ALAMAT.setText("");
+            UMUR.setText("");
+//            if (PRIA.isSelected()) {
+//            kelaminnya = PRIA.getText();
+//            } else {
+//            if (WANITA.isSelected()) {
+//                kelaminnya = WANITA.getText();
+//            }
+//            }   
+            PEKERJAAN.setSelectedItem(0);
+//            TGL_LAHIR.;
+            TELPON.setText("");
+            GOL_DARAH.setSelectedItem(0);
+            TEK_DARAH.setText("");
+            SUHU_TUBUH.setText("");
+            KADAR_HB.setText("");
+            DENYUT_NADI.setText("");
+//            darah.setSelected(DA, rootPaneCheckingEnabled);
+            DONOR_KE.setText("");
+            DONOR_TERAKHIR.setDateFormatString("");
+            model.addRow(new Object[]{nama, alamat, umur, kelamin, pekerjaan, tgl_lahir, telp, gol_darah, tek_darah, suhu_tubuh, kadar_hb, denyut_nadi, darah_diambil, donor_ke, donor_terakhir});
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
 
     private void PROSESActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_PROSESActionPerformed
-        // TODO add your handling code here:
-        String nama, alamat, umur, telpon, kelaminnya, pekerjaan, tgl_lahir, gol_darah, tek_darah, suhu, kadar_hb, denyut_nadi, darah_ambil, donor_ke, donor_terakhir;
-        nama = NAMA.getText();
-        alamat = ALAMAT.getText();
-        umur = UMUR.getText();
-        telpon = TELPON.getText();
+//        java.sql.Date sqldate = new java.sql.Date(TGL_LAHIR.getDate().getTime());
+        String kelamin = null, darah_ambil = null, tgl_lahir;
+        String nama = NAMA.getText();
+        String alamat = ALAMAT.getText();
+        String umur = UMUR.getText();
+        String telpon = TELPON.getText();
         if (PRIA.isSelected()) {
-            kelaminnya = PRIA.getText();
+            kelamin = "Pria";
         } else {
             if (WANITA.isSelected()) {
-                kelaminnya = WANITA.getText();
+                kelamin = "Wanita";
             }
         }
-        pekerjaan = PEKERJAAN.getSelectedItem().toString();
-        tgl_lahir = TGL_LAHIR.getDateFormatString();
-
-        gol_darah = GOL_DARAH.getSelectedItem().toString();
-        tek_darah = TEK_DARAH.getText();
-        suhu = SUHU_DARAH.getText();
-        kadar_hb = KADAR_HB.getText();
-        denyut_nadi = DENYUT_NADI.getText();
+        String pekerjaan = PEKERJAAN.getSelectedItem().toString();
+//        String tgl_lahir = TGL_LAHIR.getDateFormatString();
+        java.util.Date d = TGL_LAHIR.getDate();
+        if (d == null) {
+            System.out.println("No date specified!");
+        } else {
+            java.sql.Date sqldate = new java.sql.Date(d.getTime());
+            tgl_lahir = sqldate;
+        }
+        String gol_darah = GOL_DARAH.getSelectedItem().toString();
+        String tek_darah = TEK_DARAH.getText();
+        String suhu = SUHU_TUBUH.getText();
+        String kadar_hb = KADAR_HB.getText();
+        String denyut_nadi = DENYUT_NADI.getText();
         if (dua50.isSelected()) {
-            darah_ambil = dua50.getText();
+            darah_ambil = "250";
         } else {
             if (tiga50.isSelected()) {
-                darah_ambil = tiga50.getText();
+                darah_ambil = "350";
             }
         }
-        donor_ke = DONOR_KE.getText();
-        donor_terakhir = DONOR_TERAKHIR.getDateFormatString();
+        String donor_ke = DONOR_KE.getText();
+        String donor_terakhir = DONOR_TERAKHIR.getDateFormatString();
+        if (validasi(nama, alamat, donor_ke)) {
+            JOptionPane.showMessageDialog(null, "Judul sudah ada");
+        } else {
+            TambahData(nama, alamat, umur, kelamin, pekerjaan, tgl_lahir, telpon, gol_darah, tek_darah, suhu, kadar_hb, denyut_nadi, darah_ambil, donor_ke, donor_terakhir);
+            InitTable();
+            TampilData();
+            JOptionPane.showMessageDialog(null, "Kamu Berhasil Bosku");
+        }
 
     }//GEN-LAST:event_PROSESActionPerformed
 
@@ -581,7 +727,7 @@ public class pendonor extends javax.swing.JFrame {
         UMUR.setText("");
         TELPON.setText("");
         TEK_DARAH.setText("");
-        SUHU_DARAH.setText("");
+        SUHU_TUBUH.setText("");
         KADAR_HB.setText("");
         DENYUT_NADI.setText("");
         DONOR_KE.setText("");
@@ -603,13 +749,17 @@ public class pendonor extends javax.swing.JFrame {
         TELPON.setText(TABLE.getValueAt(baris, 7).toString());
         GOL_DARAH.setSelectedItem(TABLE.getValueAt(baris, 8).toString());
         TEK_DARAH.setText(TABLE.getValueAt(baris, 9).toString());
-        SUHU_DARAH.setText(TABLE.getValueAt(baris, 10).toString());
+        SUHU_TUBUH.setText(TABLE.getValueAt(baris, 10).toString());
         KADAR_HB.setText(TABLE.getValueAt(baris, 11).toString());
         DENYUT_NADI.setText(TABLE.getValueAt(baris, 12).toString());
 //        darah.setText(TABLE.getValueAt(baris, 13).toString());
         DONOR_KE.setText(TABLE.getValueAt(baris, 14).toString());
         DONOR_TERAKHIR.setDateFormatString(TABLE.getValueAt(baris, 15).toString());
     }//GEN-LAST:event_TABLEMouseClicked
+
+    private void SUHU_TUBUHActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SUHU_TUBUHActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_SUHU_TUBUHActionPerformed
 
     /**
      * @param args the command line arguments
@@ -645,14 +795,14 @@ public class pendonor extends javax.swing.JFrame {
             }
         });
     }
-    
-    private void TampilData(){
-        try{
+
+    private void TampilData() {
+        try {
             String sql = "SELECT * from pendonor"; //membuat perintah query yaitu query untuk melihat isi atau data dari table buku
             stt = con.createStatement(); //pembuatan statement
             rss = stt.executeQuery(sql); //eksekusi query
-            while(rss.next()){
-                Object[] o=new Object[15];
+            while (rss.next()) {
+                Object[] o = new Object[15];
                 o[0] = rss.getString("id_pendonor");
                 o[1] = rss.getString("nama");
                 o[2] = rss.getString("alamat");
@@ -673,13 +823,14 @@ public class pendonor extends javax.swing.JFrame {
             }
 //            rss.close(); //menutup rss
 //            stt.close(); //menutup stt
-        }catch(SQLException e){
+        } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField ALAMAT;
+    private javax.swing.JButton CHOOSE;
     private javax.swing.JTextField DENYUT_NADI;
     private javax.swing.JTextField DONOR_KE;
     private com.toedter.calendar.JDateChooser DONOR_TERAKHIR;
@@ -690,7 +841,7 @@ public class pendonor extends javax.swing.JFrame {
     private javax.swing.JRadioButton PRIA;
     private javax.swing.JButton PROSES;
     private javax.swing.JButton RESET;
-    private javax.swing.JTextField SUHU_DARAH;
+    private javax.swing.JTextField SUHU_TUBUH;
     private javax.swing.JTable TABLE;
     private javax.swing.JTextField TEK_DARAH;
     private javax.swing.JTextField TELPON;
@@ -699,7 +850,6 @@ public class pendonor extends javax.swing.JFrame {
     private javax.swing.JRadioButton WANITA;
     private javax.swing.ButtonGroup darah;
     private javax.swing.JRadioButton dua50;
-    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
@@ -726,8 +876,10 @@ public class pendonor extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.ButtonGroup kelamin;
+    private javax.swing.JLabel lblwaktu;
     private usu.widget.glass.PanelGlass panelGlass1;
     private javax.swing.JLabel photo;
+    private javax.swing.JLabel tglskrng;
     private javax.swing.JRadioButton tiga50;
     // End of variables declaration//GEN-END:variables
 }
